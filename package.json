@@ -1,5 +1,5 @@
 {
-  "name": "big-pipe-parse",
+  "name": "nowindow",
   "version": "1.0.0",
   "description": "A utility for parsing a JS file and rewriting it to be safely run in node",
   "main": "index.js",
