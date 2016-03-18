@@ -1,12 +1,12 @@
 {
-  "name": "nowindow",
-  "version": "1.0.0",
+  "name": "nodom",
+  "version": "0.0.1",
   "description": "A utility for parsing a JS file and rewriting it to be safely run in node",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Kevin Mikles <gvsboy@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "escodegen": "^1.8.0",

@@ -4,24 +4,34 @@ const fs = require('fs');
 const esprima = require('esprima');
 const escodegen = require('escodegen');
 
-const inDir = 'demo/in/';
-const outDir = 'demo/out/';
-
 // Generates a JS file using escodegen and writes it to /demo/out.
 // Outputs the full generated source to log for instant gratification.
-function generate(ast) {
+function generate(input, output) {
 
-  var code = escodegen.generate(ast);
+  let source = fs.readFileSync(input);
+  let ast = parseSource(source);
+  let updatedAst = magic(ast);
+  let code = escodegen.generate(ast);
+
+  if (!output) {
+    output = `${input}-nodom.js`;
+  }
+
+  // For testing!
   console.log(code);
 
-  fs.writeFile(outDir + fileName, code, (err) => {
+  fs.writeFile(output, code, (err) => {
     if (err) {
       console.log(err);
     }
     else {
-      console.log(`${outDir + fileName} written to disk!`);
+      console.log(`${output} written to disk`);
     }
   });
+}
+
+function parseSource(source) {
+  return esprima.parse(source, { tokens: true, loc: true });
 }
 
 // Get all tokens that have the value 'window' (for now ... could filter by other values too).
@@ -69,16 +79,10 @@ function magic(ast) {
   return ast;
 }
 
-// Get the source file (hardcoded for now).
-let fileName = 'test.js';
-//let fileName = 'node_modules/mediaelement/build/mediaelement-and-player.js';
-let source = fs.readFileSync(inDir + fileName);
+// Was this instantiated from the CLI? If so, parse the given file.
+let argFile = process.argv[2];
+if (argFile) {
+  generate(argFile, process.argv[3]);
+}
 
-// AST-parse!
-let ast = esprima.parse(source, { tokens: true, loc: true });
-
-// Do the magic.
-let updatedAst = magic(ast);
-
-// Finally, generate the resulting ast into a real file, Pinocchio-style.
-generate(updatedAst);
+module.exports = generate;
