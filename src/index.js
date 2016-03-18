@@ -4,30 +4,44 @@ const fs = require('fs');
 const esprima = require('esprima');
 const escodegen = require('escodegen');
 
-// Generates a JS file using escodegen and writes it to /demo/out.
-// Outputs the full generated source to log for instant gratification.
-function generate(input, output) {
+/**
+ * The main thing.
+ * @param {Object|String} opts Code transformation configuration options or a source file.
+ * @param {String} [opts.src] The source JS file.
+ * @param {String} [opts.dest] The destination file to write.
+ * @return {String} The transformed src with DOM references protected.
+ */
+function generate(opts) {
 
-  let source = fs.readFileSync(input);
-  let ast = parseSource(source);
+  // The opts argument can either be an object containing configuration options
+  // to fine-tune your transformation or a string reference to a file. The latter
+  // acts as a simple pass-through: file in, source string out.
+  let src = typeof opts === 'string' ? opts : opts.src;
+  if (!src) {
+    console.error('You must provide a source file!');
+    return;
+  }
+
+  // String inputs are assumed to be file paths to read.
+  // Other types will be assigned as-is (assuming raw files passed through a build tool).
+  let raw = typeof src === 'string' ? fs.readFileSync(src) : src;
+  let ast = parseSource(raw);
   let updatedAst = magic(ast);
   let code = escodegen.generate(ast);
 
-  if (!output) {
-    output = `${input}-nodom.js`;
+  let dest = opts.dest;
+  if (dest) {
+    fs.writeFile(dest, code, (err) => {
+      if (err) {
+        console.error(err);
+      }
+      else {
+        console.log(`${dest} written to disk`);
+      }
+    });
   }
 
-  // For testing!
-  console.log(code);
-
-  fs.writeFile(output, code, (err) => {
-    if (err) {
-      console.log(err);
-    }
-    else {
-      console.log(`${output} written to disk`);
-    }
-  });
+  return code;
 }
 
 function parseSource(source) {
@@ -80,9 +94,11 @@ function magic(ast) {
 }
 
 // Was this instantiated from the CLI? If so, parse the given file.
-let argFile = process.argv[2];
-if (argFile) {
-  generate(argFile, process.argv[3]);
+if (require.main === module) {
+  generate({
+    src: process.argv[2],
+    dest: process.argv[3]
+  });
 }
 
 module.exports = generate;
