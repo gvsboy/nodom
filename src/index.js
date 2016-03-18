@@ -77,7 +77,7 @@ function magic(ast) {
   var domTokens = filterDOMTokens(ast);
   var problemLineNumbers = getLineNumbers(domTokens);
 
-  console.log(problemLineNumbers)
+  //console.log(problemLineNumbers)
 
   // These indicies don't work past the first because we're modifying stuff.
   // Will need a better way to iterate and mutate.
