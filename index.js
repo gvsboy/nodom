@@ -33,8 +33,12 @@ function getLineNumbers(nodes) {
   return nodes.map(node => node.loc.start.line);
 }
 
+// Nodes generated using wrap() will not have a line number.
+// Performs a deep search.
 function getNodeByLine(root, lineNumber) {
-  return root.find(node => node.loc.start.line === lineNumber);
+  return root.find((node) => {
+    return node.loc && node.loc.start.line === lineNumber;
+  });
 }
 
 function wrap(node) {
@@ -45,17 +49,21 @@ function wrap(node) {
 // Uses magic.
 // Needs to be much more robust. This falls apart pretty quickly but works for a POC.
 function magic(ast) {
-  let body = ast.body;
-  let domTokens = filterDOMTokens(ast);
-  let problemLineNumbers = getLineNumbers(domTokens);
+  var body = ast.body;
+  var domTokens = filterDOMTokens(ast);
+  var problemLineNumbers = getLineNumbers(domTokens);
+
+  console.log(problemLineNumbers)
 
   // These indicies don't work past the first because we're modifying stuff.
   // Will need a better way to iterate and mutate.
   problemLineNumbers.forEach((lineNumber) => {
     let problemNode = getNodeByLine(body, lineNumber);
-    let problemIndex = body.indexOf(problemNode);
-    let gen = escodegen.generate(problemNode);
-    body.splice(problemIndex, 1, wrap(gen));
+    if (problemNode) {
+      let problemIndex = body.indexOf(problemNode);
+      let gen = escodegen.generate(problemNode);
+      body.splice(problemIndex, 1, wrap(gen));
+    }
   });
 
   return ast;
